@@ -66,7 +66,7 @@ for h, f in enumerate(data.task_dependency):
 # 添加约束 Th < Th_max
 Ttime = [0] * data.task_count
 for h, f in enumerate(data.task_dependency):
-    Ttime[h] = quicksum(y[(f[0], k, h)] * (data.data_size_user / data.r_uovk_user[k] + data.request_resource[f[0]] / data.c_vk[k]) for k in range(data.edgenode_count)) + quicksum(
+    Ttime[h] = quicksum(y[(f[0], k, h)] * (data.data_size_user / data.r_uovk_user[(h, k)] + data.request_resource[f[0]] / data.c_vk[k]) for k in range(data.edgenode_count)) + quicksum(
         y[(f[i+1], k, h)] * (data.data_size[f[i]] / data.r_uovk[(k_value[(f[i], h)], k)] + data.request_resource[f[i+1]] / data.c_vk[k]) for i in range(len(f) - 1) for k in range(data.edgenode_count))
     model.addConstr(Ttime[h] - data.T_h_max < 0)
 

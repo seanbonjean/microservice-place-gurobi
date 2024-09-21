@@ -47,7 +47,8 @@ class Data:
         self.r_uovk_user = []  # 用户发送到边缘节点i的传输速率
         for i in range(self.edgenode_count):
             line = self.nextLine()
-            self.r_uovk_user.append([int(x) for x in line.split()])
+            for j, value in enumerate(line.split()):
+                self.r_uovk_user[(i, j)] = float(value)
 
         self.r_uovk = {}  # 边缘节点i到边缘节点j的传输速率
         for i in range(self.edgenode_count):
