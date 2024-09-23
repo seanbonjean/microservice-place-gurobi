@@ -44,7 +44,7 @@ class Data:
             line = self.nextLine()
             self.task_dependency.append([int(x) for x in line.split()])
 
-        self.r_uovk_user = []  # 用户发送到边缘节点i的传输速率
+        self.r_uovk_user = {}  # 用户发送到边缘节点i的传输速率
         for i in range(self.edgenode_count):
             line = self.nextLine()
             for j, value in enumerate(line.split()):

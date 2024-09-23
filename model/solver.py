@@ -28,7 +28,7 @@ for i in range(data.microservice_count):
     for k in range(data.edgenode_count):
         for h in range(data.task_count):
             y[(i, k, h)] = model.addVar(
-                vtype=GRB.BINARY, name="y_%d_%d_%d" % (i, k, h))
+                vtype=GRB.CONTINUOUS, name="y_%d_%d_%d" % (i, k, h))
 
 # Update model
 model.update()
@@ -42,13 +42,16 @@ for h, f in enumerate(data.task_dependency):
     for i in f:
         model.addConstr(quicksum(y[(i, k, h)]
                         for k in range(data.edgenode_count)) == 1)
+"""
     # 不能去找不需要的微服务
     for i in range(data.microservice_count):
         if i not in f:
             model.addConstr(quicksum(y[(i, k, h)]
                             for k in range(data.edgenode_count)) == 0)
+"""
 
 # Th < Th_max
+"""
 # 前置工作，大M法引入辅助变量
 k_value = {}
 for h, f in enumerate(data.task_dependency):
@@ -63,18 +66,21 @@ for h, f in enumerate(data.task_dependency):
                             (1 - y[(i, k, h)]) * data.edgenode_count)
             model.addConstr(k_value[(i, h)] <= k +
                             (1 - y[(i, k, h)]) * data.edgenode_count)
+model.update()
+"""
 # 添加约束 Th < Th_max
 Ttime = [0] * data.task_count
 for h, f in enumerate(data.task_dependency):
-    Ttime[h] = quicksum(y[(f[0], k, h)] * (data.data_size_user / data.r_uovk_user[(h, k)] + data.request_resource[f[0]] / data.c_vk[k]) for k in range(data.edgenode_count)) + quicksum(
-        y[(f[i+1], k, h)] * (data.data_size[f[i]] / data.r_uovk[(k_value[(f[i], h)], k)] + data.request_resource[f[i+1]] / data.c_vk[k]) for i in range(len(f) - 1) for k in range(data.edgenode_count))
-    model.addConstr(Ttime[h] - data.T_h_max < 0)
+    Ttime[h] = quicksum(y[(f[0], k, h)] * (data.data_size_user / data.r_uovk_user[(k, h)] + data.request_resource[f[0]] / data.c_vk[k]) for k in range(data.edgenode_count)) + quicksum(
+        y[(f[i+1], k, h)] * (data.data_size[f[i]] / data.r_uovk[((k-1 if k != 0 else k+1), k)] + data.request_resource[f[i+1]] / data.c_vk[k]) for i in range(len(f) - 1) for k in range(data.edgenode_count))
+    model.addConstr(Ttime[h] - data.T_h_max <= 0)
+# k_value[(f[i], h)]
 
 # x(i, k)
 
 # C < C_max
 Cost = quicksum(x[(i, k)] * data.place_cost[i] for i in range(data.microservice_count) for k in range(data.edgenode_count))
-model.addConstr(Cost - data.C_max < 0)
+model.addConstr(Cost - data.C_max <= 0)
 
 # 边缘节点上的微服务总量不超过节点上限
 for k in range(data.edgenode_count):
@@ -99,14 +105,15 @@ model.optimize()
 # Print results
 if model.status != GRB.OPTIMAL:
     print('No optimum solution found. Status: %i' % (model.status))
+else:
+    print("Optimal solution found")
+    x_result = [(i, k) for i in range(data.microservice_count) for k in range(data.edgenode_count) if x[(i, k)].X > 0.9]
+    y_result = [(i, k, h) for i in range(data.microservice_count) for k in range(data.edgenode_count) for h in range(data.task_count) if y[(i, k, h)].X > 0.9]
+    print("Result = %.4f" % model.objVal)
+    print("GAP = %.4f %%" % model.MIPGap)
+    print("Time = %.4f seg" % model.Runtime)
 
-x_result = [(i, k) for i in range(data.microservice_count) for k in range(data.edgenode_count) if x[(i, k)].X > 0.9]
-y_result = [(i, k, h) for i in range(data.microservice_count) for k in range(data.edgenode_count) for h in range(data.task_count) if y[(i, k, h)].X > 0.9]
-print("Result = %.4f" % model.objVal)
-print("GAP = %.4f %%" % model.MIPGap)
-print("Time = %.4f seg" % model.Runtime)
-
-print("x(i, k): ")
-print(x_result)
-print("y(i, k, h): ")
-print(y_result)
+    print("x(i, k): ")
+    print(x_result)
+    print("y(i, k, h): ")
+    print(y_result)
