@@ -10,7 +10,7 @@ class Data:
 
     def nextLine(self):
         line = self.file.readline().strip()
-        if not line:
+        if not line or line.startswith("#"):
             return self.nextLine()
         return line
 

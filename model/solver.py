@@ -28,7 +28,7 @@ for i in range(data.microservice_count):
     for k in range(data.edgenode_count):
         for h in range(data.task_count):
             y[(i, k, h)] = model.addVar(
-                vtype=GRB.CONTINUOUS, name="y_%d_%d_%d" % (i, k, h))
+                vtype=GRB.BINARY, name="y_%d_%d_%d" % (i, k, h))
 
 # Update model
 model.update()
