@@ -25,5 +25,5 @@ def symmetricgen(row:int, col:int, rand_size:tuple) -> None:
             file.write(s.strip() + "\n")
 
 if __name__ == "__main__":
-    randgen(100, 1, (1,2))
-    # symmetricgen(100, 100, (1,9))
+    randgen(30, 1, (100, 300))
+    # symmetricgen(100, 100, (1, 9))

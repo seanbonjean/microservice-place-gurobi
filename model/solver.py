@@ -72,7 +72,7 @@ model.update()
 Ttime = [0] * data.task_count
 for h, f in enumerate(data.task_dependency):
     Ttime[h] = quicksum(y[(f[0], k, h)] * (data.data_size_user / data.r_uovk_user[(k, h)] + data.request_resource[f[0]] / data.c_vk[k]) for k in range(data.edgenode_count)) + quicksum(
-        y[(f[i+1], k, h)] * (data.data_size[f[i]] / data.r_uovk[((k-1 if k != 0 else k+1), k)] + data.request_resource[f[i+1]] / data.c_vk[k]) for i in range(len(f) - 1) for k in range(data.edgenode_count))
+        y[(f[i+1], k, h)] * (data.data_size[f[i]] * quicksum(y[(f[i], k_prev, h)] * (1 / (data.r_uovk[(k_prev, k)] if data.r_uovk[(k_prev, k)] != 0 else 1e7)) for k_prev in range(data.edgenode_count)) + data.request_resource[f[i+1]] / data.c_vk[k]) for i in range(len(f) - 1) for k in range(data.edgenode_count))
     model.addConstr(Ttime[h] - data.T_h_max <= 0)
 # k_value[(f[i], h)]
 
